@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Documentation Assistant</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F3EE;
+  --surface:#FFFFFF;
+  --surface2:#EDEBE4;
+  --border:#DDD9CE;
+  --border-strong:#C4BFB0;
+  --text:#1C1A16;
+  --text-muted:#6B6757;
+  --text-hint:#A09C90;
+  --navy:#1B3A5C;
+  --navy-light:#EBF0F6;
+  --navy-mid:#4A7AAD;
+  --teal:#0F5E56;
+  --teal-light:#E3F2F0;
+  --amber:#92400E;
+  --amber-light:#FEF3C7;
+  --red:#991B1B;
+  --red-light:#FEE2E2;
+  --green:#065F46;
+  --green-light:#D1FAE5;
+  --font:'DM Sans',sans-serif;
+  --serif:'Lora',serif;
+  --r:8px;
+  --r-lg:12px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.65}
+.layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{background:var(--navy);color:#C5D9EE;padding:36px 28px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-brand{font-size:10px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#7BA7D4;margin-bottom:6px}
+.sidebar-title{font-family:var(--serif);font-size:17px;font-weight:400;color:#fff;line-height:1.4;margin-bottom:32px}
+.sidebar-section{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:#5A84AD;margin-bottom:10px;margin-top:20px}
+.step{display:flex;align-items:flex-start;gap:12px;padding:9px 10px;border-radius:6px;margin-bottom:2px}
+.step.active{background:rgba(255,255,255,.1)}
+.step-num{width:20px;height:20px;border-radius:50%;border:1.5px solid #5A84AD;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;color:#5A84AD;margin-top:2px}
+.step.active .step-num{background:#fff;color:var(--navy);border-color:#fff}
+.step.done .step-num{background:#7BA7D4;color:var(--navy);border-color:#7BA7D4}
+.step-text{font-size:13px;color:#8AAECF;line-height:1.4}
+.step.active .step-text{color:#fff;font-weight:500}
+.step.done .step-text{color:#7BA7D4}
+.sidebar-info{margin-top:auto;padding-top:24px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:#5A84AD;line-height:1.7}
+.sidebar-info strong{color:#7BA7D4;font-weight:500}
+
+/* MAIN */
+.main{padding:48px 60px;max-width:820px}
+.screen{display:none}.screen.active{display:block}
+
+/* TYPOGRAPHY */
+.eyebrow{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text-hint);margin-bottom:10px}
+h1{font-family:var(--serif);font-size:28px;font-weight:400;line-height:1.3;margin-bottom:10px}
+h2{font-size:18px;font-weight:500;margin-bottom:14px}
+.lead{font-size:15px;color:var(--text-muted);line-height:1.7;margin-bottom:36px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;margin-bottom:16px}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:12px}
+
+/* OPTION BUTTONS */
+.option-btn{width:100%;display:flex;align-items:flex-start;gap:16px;padding:18px 20px;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r-lg);cursor:pointer;text-align:left;font-family:var(--font);transition:all .15s;margin-bottom:10px}
+.option-btn:hover{border-color:var(--navy-mid);background:var(--navy-light)}
+.option-btn.selected{border-color:var(--navy);background:var(--navy-light)}
+.opt-icon{width:38px;height:38px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:var(--surface2)}
+.opt-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:2px}
+.opt-desc{font-size:13px;color:var(--text-muted);line-height:1.5}
+
+/* LEVEL TAGS */
+.ltag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.l1{background:var(--green-light);color:var(--green)}
+.l2{background:var(--navy-light);color:var(--navy)}
+.l3{background:var(--amber-light);color:var(--amber)}
+.l4{background:var(--red-light);color:var(--red)}
+
+/* FORM */
+.form-row{margin-bottom:18px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+label{display:block;font-size:13px;font-weight:500;color:var(--text-muted);margin-bottom:6px}
+input[type=text],input[type=date],input[type=email],select,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-family:var(--font);font-size:14px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--navy-mid)}
+textarea{resize:vertical;line-height:1.6}
+
+/* ALERTS */
+.alert{padding:14px 18px;border-radius:var(--r);font-size:14px;line-height:1.6;margin-bottom:18px;border-left:3px solid transparent}
+.alert-warn{background:var(--amber-light);color:var(--amber);border-color:#D97706}
+.alert-info{background:var(--navy-light);color:var(--navy);border-color:var(--navy-mid)}
+.alert-success{background:var(--green-light);color:var(--green);border-color:#10B981}
+.alert-danger{background:var(--red-light);color:var(--red);border-color:#EF4444}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:var(--r);font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;border:1.5px solid transparent;transition:all .15s;text-decoration:none}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}.btn-primary:hover{background:#142E4A}
+.btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border-strong)}.btn-secondary:hover{background:var(--surface2)}
+.btn-teal{background:var(--teal);color:#fff;border-color:var(--teal)}.btn-teal:hover{background:#0A4A43}
+.btn-ghost{background:transparent;color:var(--text-muted);border-color:transparent;padding-left:0}.btn-ghost:hover{color:var(--text)}
+.btn-row{display:flex;align-items:center;gap:12px;margin-top:28px;flex-wrap:wrap}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;max-height:520px;overflow-y:auto;padding:4px 2px;scroll-behavior:smooth}
+.msg{max-width:88%;padding:14px 18px;border-radius:var(--r-lg);font-size:14px;line-height:1.7}
+.msg-ai{background:var(--surface);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:3px}
+.msg-user{background:var(--navy);color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.msg-ai ul,.msg-ai ol{padding-left:18px;margin-top:8px}
+.msg-ai li{margin-bottom:4px}
+.msg-ai strong{font-weight:500}
+.msg-ai p{margin-bottom:8px}.msg-ai p:last-child{margin-bottom:0}
+.chat-input-row{display:flex;gap:10px;align-items:flex-end}
+.chat-input-row textarea{flex:1;min-height:56px;max-height:160px}
+.typing{display:flex;gap:5px;align-items:center;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);width:fit-content;border-bottom-left-radius:3px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text-hint);animation:blink 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* EMAIL OUTPUT */
+.email-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:20px}
+.email-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between}
+.email-header-left{font-size:13px;color:var(--text-muted)}
+.email-header-left strong{color:var(--text);font-weight:500}
+.email-body{padding:24px}
+.email-subject{font-size:14px;font-weight:500;color:var(--text-muted);margin-bottom:4px}
+.email-subject-val{font-size:16px;font-weight:500;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+#email-content{font-size:14px;line-height:1.8;white-space:pre-wrap;min-height:200px;outline:none;color:var(--text)}
+.email-actions{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;background:var(--surface2)}
+
+/* REVIEW STATUS */
+.status-row{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-pending{background:#F59E0B}
+.dot-approved{background:#10B981}
+.status-label{font-size:14px;font-weight:500}
+.status-sub{font-size:13px;color:var(--text-muted);margin-left:auto}
+
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:28px 0}
+
+/* TRACKER PREVIEW */
+.tracker-row{display:grid;grid-template-columns:1fr 1fr 100px 80px;gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
+.tracker-cell{background:var(--surface);padding:11px 14px;font-size:13px}
+.tracker-cell.header{background:var(--surface2);font-weight:500;font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+.pill-group{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.pill{padding:6px 14px;border-radius:20px;font-size:13px;border:1.5px solid var(--border);cursor:pointer;background:var(--surface);transition:all .15s;font-family:var(--font)}
+.pill:hover{border-color:var(--navy-mid);background:var(--navy-light)}
+.pill.selected{border-color:var(--navy);background:var(--navy-light);color:var(--navy);font-weight:500}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.info-item{background:var(--surface2);border-radius:var(--r);padding:12px 16px}
+.info-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:4px}
+.info-val{font-size:14px;font-weight:500;color:var(--text)}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">Enterprise Sales Americas</div>
+  <div class="sidebar-title">Performance Documentation Assistant</div>
+  <div class="sidebar-section">Workflow</div>
+  <div class="step active" id="s-step1"><div class="step-num">1</div><div class="step-text">Documentation level</div></div>
+  <div class="step" id="s-step2"><div class="step-num">2</div><div class="step-text">Employee details</div></div>
+  <div class="step" id="s-step3"><div class="step-num">3</div><div class="step-text">Draft email with AI</div></div>
+  <div class="step" id="s-step4"><div class="step-num">4</div><div class="step-text">Review &amp; send</div></div>
+  <div class="sidebar-info">
+    <strong>PBP review required</strong> for Level 2 and above before sending.<br><br>
+    Questions? Contact your PBP directly via Slack.
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- SCREEN 1: LEVEL SELECTION -->
+  <div class="screen active" id="screen1">
+    <div class="eyebrow">Step 1 of 4</div>
+    <h1>Where are you in the process?</h1>
+    <p class="lead">Select the stage that best describes where this employee's performance documentation currently stands.</p>
+
+    <button class="option-btn" onclick="selectLevel('1','Just starting documentation','l1')">
+      <div class="opt-icon">&#9312;</div>
+      <div><div class="opt-title">Just starting documentation <span class="ltag l1" style="margin-left:8px">Level 1</span></div><div class="opt-desc">First time documenting a concern. Light-touch follow-up after a coaching conversation.</div></div>
+    </button>
+    <button class="option-btn" onclick="selectLevel('2-3','Mid-documentation','l2')">
+      <div class="opt-icon">&#9313;</div>
+      <div><div class="opt-title">Mid-documentation <span class="ltag l2" style="margin-left:8px">Levels 2–3</span></div><div class="opt-desc">Issue persists after Level 1. More formal documentation with increased urgency.</div></div>
+    </button>
+    <button class="option-btn" onclick="selectLevel('4','Moving toward a PIP','l4')">
+      <div class="opt-icon">&#9314;</div>
+      <div><div class="opt-title">Moving toward a PIP <span class="ltag l4" style="margin-left:8px">Level 4</span></div><div class="opt-desc">Informal coaching exhausted. PBP sync required before proceeding.</div></div>
+    </button>
+    <button class="option-btn" onclick="showLevelGuide()">
+      <div class="opt-icon">&#9679;</div>
+      <div><div class="opt-title">Not sure which level</div><div class="opt-desc">Answer a few quick questions to find the right level.</div></div>
+    </button>
+
+    <div id="level-guide" style="display:none" class="card fade-in">
+      <h2>Let's find the right level</h2>
+      <div class="form-row">
+        <label>Have you already sent a Level 1 email about this issue?</label>
+        <select id="q1"><option value="">Select...</option><option>Yes</option><option>No</option></select>
+      </div>
+      <div class="form-row">
+        <label>How long has this issue been ongoing?</label>
+        <select id="q2"><option value="">Select...</option><option>Less than 2 weeks</option><option>2–4 weeks</option><option>4–8 weeks</option><option>More than 8 weeks</option></select>
+      </div>
+      <div class="form-row">
+        <label>Have you discussed escalation or a possible PIP with your PBP?</label>
+        <select id="q3"><option value="">Select...</option><option>Yes</option><option>No</option></select>
+      </div>
+      <button class="btn btn-primary" onclick="guideLevel()">Recommend a level &#8594;</button>
+      <div id="guide-result" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: EMPLOYEE DETAILS -->
+  <div class="screen" id="screen2">
+    <div class="eyebrow">Step 2 of 4</div>
+    <h1>Employee &amp; conversation details</h1>
+    <p class="lead">Fill in the basics. This information will be used to personalize the email draft.</p>
+
+    <div id="cadence-alert" class="alert alert-warn" style="display:none"></div>
+
+    <div class="card">
+      <h2 style="margin-bottom:20px">Employee information</h2>
+      <div class="form-grid">
+        <div><label>Employee name</label><input type="text" id="emp-name" placeholder="e.g. Alex Johnson"></div>
+        <div><label>Employee role</label><input type="text" id="emp-role" placeholder="e.g. Enterprise Account Executive"></div>
+      </div>
+      <div class="form-grid">
+        <div><label>Manager name</label><input type="text" id="mgr-name" placeholder="Your full name"></div>
+        <div><label>Manager email (for mailto)</label><input type="email" id="mgr-email" placeholder="you@company.com"></div>
+      </div>
+      <div class="form-row">
+        <label>Employee email</label>
+        <input type="email" id="emp-email" placeholder="employee@company.com">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:20px">Documentation history</h2>
+      <div class="form-grid">
+        <div><label>Date of today's live conversation</label><input type="date" id="conv-date"></div>
+        <div><label>Date of last feedback email sent</label><input type="date" id="last-email-date"></div>
+      </div>
+      <div class="form-row">
+        <label>Level of last feedback email</label>
+        <select id="last-email-level">
+          <option value="">Select level...</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option><option>Level 4</option><option>This is my first email</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Prior documentation dates (optional — list any previous email dates)</label>
+        <input type="text" id="prior-dates" placeholder="e.g. Jan 15, Feb 3, Feb 17">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goScreen(1)">&#8592; Back</button>
+      <button class="btn btn-primary" onclick="validateDetails()">Continue to drafting &#8594;</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: AI DRAFTING CHAT -->
+  <div class="screen" id="screen3">
+    <div class="eyebrow">Step 3 of 4</div>
+    <h1>Draft with AI</h1>
+
+    <div id="context-bar" class="info-grid" style="margin-bottom:24px"></div>
+
+    <div id="pip-warning" class="alert alert-warn" style="display:none">
+      <strong>PBP sync required.</strong> Before proceeding with Level 4 documentation, please connect with your PBP to align on next steps. A PIP will be introduced at this stage.
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:500;color:var(--text-muted)">AI Assistant</div>
+        <div id="level-badge"></div>
+      </div>
+      <div style="padding:20px">
+        <div class="chat-wrap" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <textarea id="chat-input" placeholder="Type your response here..." rows="2" onkeydown="handleKey(event)"></textarea>
+          <button class="btn btn-primary" onclick="sendMessage()" id="send-btn">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="draft-ready" style="display:none" class="fade-in">
+      <div class="alert alert-success">Your email draft is ready. Review it below, make any edits, then proceed to send.</div>
+      <button class="btn btn-primary" onclick="goToReview()">Review &amp; send &#8594;</button>
+    </div>
+
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="goScreen(2)">&#8592; Back</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: REVIEW & SEND -->
+  <div class="screen" id="screen4">
+    <div class="eyebrow">Step 4 of 4</div>
+    <h1>Review &amp; send</h1>
+
+    <div id="hr-review-notice" style="display:none">
+      <div class="alert alert-info">
+        <strong>HR review required.</strong> This is a Level <span id="hr-level-label"></span> email. Before sending, your PBP must review and approve. Use the button below to send the draft for review.
+      </div>
+      <div class="status-row">
+        <div class="status-dot dot-pending" id="review-dot"></div>
+        <div class="status-label" id="review-status-label">Pending HR review</div>
+        <div class="status-sub" id="review-status-sub">Not yet submitted</div>
+      </div>
+    </div>
+
+    <div class="email-box">
+      <div class="email-header">
+        <div class="email-header-left">
+          To: <strong id="review-to">—</strong> &nbsp;|&nbsp; From: <strong id="review-from">—</strong>
+        </div>
+        <div id="review-level-tag"></div>
+      </div>
+      <div class="email-body">
+        <div class="email-subject">Subject</div>
+        <div class="email-subject-val" id="review-subject" contenteditable="true"></div>
+        <div id="email-content" contenteditable="true"></div>
+      </div>
+      <div class="email-actions">
+        <button class="btn btn-secondary" onclick="copyEmail()">&#128203; Copy email</button>
+        <div id="hr-btn-wrap"></div>
+        <div id="send-btn-wrap"></div>
+      </div>
+    </div>
+
+    <div class="card-sm" style="background:var(--surface2)">
+      <div style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text-hint);margin-bottom:8px">Before sending — manager checklist</div>
+      <div id="checklist-items" style="font-size:14px;color:var(--text-muted);line-height:1.8"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goScreen(3)">&#8592; Back to drafting</button>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are the Enterprise Sales Americas Performance Documentation Assistant.
+
+Your users are first line managers. Your role is to help them draft clear, professional performance documentation emails aligned to Levels 1–5 and following a live verbal conversation.
+
+Core Responsibilities
+Help managers select the correct documentation level
+Enforce cadence and prevent skipping levels
+Identify missing feedback components and prompt for details
+Draft a complete, ready-to-send email
+
+When to Start Level 1
+Recommend Level 1 if any apply:
+Missed targets or metrics
+Repeated missed commitments
+Behavior impacting team or customers
+Unclear understanding after coaching
+Requested documentation
+If unsure, start Level 1.
+
+Expected Cadence
+Level 1: ~2 weeks (weekly follow-up)
+Level 2: ~4 weeks
+Level 3: ~4 weeks
+Level 4: immediate PBP sync
+Total pre-PIP: ~10 weeks (2–3 months)
+
+Level Selection Guidance
+Level 1: First documentation or reinforcing expectations
+Level 2: Continued issues after 2–4 weeks
+Level 3: Ongoing issues with increased concern
+Level 4: No improvement, PIP likely, PBP required
+Level 5: PIP in progress (do not draft full doc)
+PBP review required for Level 3+.
+
+Required Inputs
+Collect:
+Employee name, role, manager
+Date of conversation
+Prior documentation dates (if applicable)
+Performance gaps
+Why each gap matters
+Expectations
+Support/recommendations discussed
+Timeline and next check-in
+
+Quality Gate (Do not skip)
+This Quality Gate applies to Levels 2–4 only. Do not enforce these requirements for Level 1.
+For each topic ensure the manager provides:
+- Gap with a specific example
+- Impact with a clear business or team example
+- Expectation with a measurable or observable standard
+- Support with specific actions or guidance discussed
+
+If any detail is missing, vague, or lacks examples, do not draft the email.
+Instead, prompt: "To complete this, I need more specific detail for each topic:
+- Gap: What specifically happened? Include a recent example.
+- Impact: What was the impact? Be specific (team, forecast, customer, etc.).
+- Expectation: What should be happening instead? Include a measurable standard.
+- Support: What exactly did you discuss or recommend?"
+
+Do not proceed until all topics include clear, specific examples. Do not assume or fill in missing details.
+
+WHY EACH COMPONENT MATTERS (FOR MANAGER GUIDANCE)
+When requesting additional detail, briefly explain why each component is important:
+- Gap with a specific example: ensures feedback is clear and objective based on observable behavior
+- Impact with a clear business or team example: connects performance to real outcomes and reinforces urgency
+- Expectation with a measurable or observable standard: removes ambiguity and makes it easier to take action
+- Support with specific actions or guidance discussed: demonstrates coaching was provided, showing a fair approach
+
+When prompting for missing information, include a brief explanation of why the detail is needed (1 sentence max per item).
+
+STRICT ENFORCEMENT
+If required detail or examples are missing, you must stop and request additional information.
+Do not:
+- Draft any portion of the email
+- Suggest how you will rewrite the email
+- Provide a preview of the output
+- Say what you are going to do next
+- Outline improvements or describe how the email will be strengthened
+Only ask for the missing information.
+
+NO PRE-DRAFTING RULE
+You are not allowed to begin drafting or describing the email until all required inputs are complete.
+If inputs are incomplete, your response must only ask for missing details.
+
+LEVEL-SPECIFIC DETAIL REQUIREMENTS
+Level 1 (Light Touch):
+- The email can be a concise recap of the conversation
+- Focus on summarizing the main performance topics discussed
+- Specific examples are helpful but not required for every point
+- Do not block drafting due to lack of detailed examples
+- Tone should be clear, supportive, and focused on alignment
+
+Levels 2–4 (Formal Documentation):
+- Apply full Quality Gate
+- Require specific examples for each performance topic
+- Do not draft if inputs are vague or incomplete
+
+Level 5 (PIP):
+- Do not draft full PIP documentation
+- Direct the manager to partner with their PBP
+
+Structure Guidance (Critical)
+Organize by performance topic, not feedback category
+Do not use headings like gap, impact, expectation, support
+Integrate all elements naturally within each topic
+Each topic should clearly include what the issue is, why it matters, what is expected, and what support was provided
+Use bullet points if helpful. Avoid repetitive or templated phrasing.
+
+Drafting Requirements
+Reference the live conversation date
+Match tone to level
+Be direct, professional, and supportive
+Focus on behaviors, not personality
+Level 3–4: include escalation language
+Level 4: state PIP will be introduced
+Do not use "what good looks like" — use: expectations, success in role, meeting expectations
+Do not fill in missing details for the manager.
+
+Output Format
+When the email is complete and ready, format your response EXACTLY like this:
+SUBJECT: [subject line here]
+EMAIL:
+[full email body here]
+CHECKLIST:
+- [item 1]
+- [item 2]
+- [item 3]
+
+INTERNAL LOGIC SHOULD NOT BE EXPOSED
+Do not reference or mention internal rules, frameworks, or decision logic in your responses.
+When requesting information, do so naturally and directly.
+All responses should feel natural, concise, and focused on helping the manager move forward.`;
+
+let state = {
+  level: '',
+  levelCode: '',
+  levelTag: '',
+  empName: '',
+  empEmail: '',
+  empRole: '',
+  mgrName: '',
+  mgrEmail: '',
+  convDate: '',
+  lastEmailDate: '',
+  lastEmailLevel: '',
+  priorDates: '',
+  messages: [],
+  draftSubject: '',
+  draftBody: '',
+  draftChecklist: [],
+  hrSubmitted: false,
+  hrApproved: false
+};
+
+function selectLevel(code, label, tagClass) {
+  state.level = label;
+  state.levelCode = code;
+  state.levelTag = tagClass;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  setTimeout(() => goScreen(2), 300);
+}
+
+function showLevelGuide() {
+  document.getElementById('level-guide').style.display = 'block';
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+function guideLevel() {
+  const q1 = document.getElementById('q1').value;
+  const q2 = document.getElementById('q2').value;
+  const q3 = document.getElementById('q3').value;
+  if (!q1 || !q2 || !q3) { document.getElementById('guide-result').innerHTML = '<div class="alert alert-warn">Please answer all three questions.</div>'; return; }
+  let rec = '';
+  if (q1 === 'No') { rec = '<strong>Level 1</strong> — This is your first documentation. Start with a light-touch follow-up.'; state.level = 'Just starting documentation'; state.levelCode = '1'; state.levelTag = 'l1'; }
+  else if (q3 === 'Yes') { rec = '<strong>Level 4</strong> — PBP alignment is underway. Proceed to pre-PIP documentation. PBP sync required before sending.'; state.level = 'Moving toward a PIP'; state.levelCode = '4'; state.levelTag = 'l4'; }
+  else if (q2 === 'More than 8 weeks') { rec = '<strong>Level 3</strong> — Extended persistence with prior documentation. Formal escalation tone required.'; state.level = 'Mid-documentation'; state.levelCode = '2-3'; state.levelTag = 'l3'; }
+  else if (q2 === '4–8 weeks') { rec = '<strong>Level 2</strong> — Continued issues after Level 1. More formal documentation required.'; state.level = 'Mid-documentation'; state.levelCode = '2-3'; state.levelTag = 'l2'; }
+  else { rec = '<strong>Level 1</strong> — Issue is early stage. Start with a light-touch follow-up.'; state.level = 'Just starting documentation'; state.levelCode = '1'; state.levelTag = 'l1'; }
+  document.getElementById('guide-result').innerHTML = `<div class="alert alert-info">${rec}</div><button class="btn btn-primary" onclick="goScreen(2)">Continue with this level &#8594;</button>`;
+}
+
+function validateDetails() {
+  const empName = document.getElementById('emp-name').value.trim();
+  const empRole = document.getElementById('emp-role').value.trim();
+  const mgrName = document.getElementById('mgr-name').value.trim();
+  const convDate = document.getElementById('conv-date').value;
+  if (!empName || !empRole || !mgrName || !convDate) {
+    alert('Please fill in employee name, role, manager name, and conversation date before continuing.');
+    return;
+  }
+  state.empName = empName;
+  state.empRole = empRole;
+  state.mgrName = mgrName;
+  state.mgrEmail = document.getElementById('mgr-email').value.trim();
+  state.empEmail = document.getElementById('emp-email').value.trim();
+  state.convDate = convDate;
+  state.lastEmailDate = document.getElementById('last-email-date').value;
+  state.lastEmailLevel = document.getElementById('last-email-level').value;
+  state.priorDates = document.getElementById('prior-dates').value.trim();
+
+  // Cadence guardrail check
+  let cadenceWarning = '';
+  if (state.lastEmailDate) {
+    const last = new Date(state.lastEmailDate);
+    const now = new Date();
+    const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+    if (diffDays > 30 && state.levelCode !== '1') {
+      cadenceWarning = `<strong>Cadence note:</strong> Your last feedback email was ${diffDays} days ago (more than 1 month). Before escalating to the next level, you should send another email at ${state.lastEmailLevel || 'the same level'} first to re-establish a consistent documentation cadence.`;
+    }
+  }
+  const alert = document.getElementById('cadence-alert');
+  if (cadenceWarning) { alert.innerHTML = cadenceWarning; alert.style.display = 'block'; } else { alert.style.display = 'none'; }
+
+  goScreen(3);
+  initChat();
+}
+
+function initChat() {
+  // Context bar
+  const fmt = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '—';
+  document.getElementById('context-bar').innerHTML = `
+    <div class="info-item"><div class="info-label">Employee</div><div class="info-val">${state.empName}</div></div>
+    <div class="info-item"><div class="info-label">Role</div><div class="info-val">${state.empRole}</div></div>
+    <div class="info-item"><div class="info-label">Conversation date</div><div class="info-val">${fmt(state.convDate)}</div></div>
+    <div class="info-item"><div class="info-label">Documentation level</div><div class="info-val">${state.level}</div></div>
+  `;
+
+  // Level badge
+  const tagMap = {l1:'l1',l2:'l2',l3:'l3',l4:'l4'};
+  document.getElementById('level-badge').innerHTML = `<span class="ltag ${state.levelTag}">${state.level}</span>`;
+
+  // PIP warning
+  if (state.levelCode === '4') document.getElementById('pip-warning').style.display = 'block';
+
+  // Build opening context message for AI
+  const contextMsg = `Manager details:
+- Employee: ${state.empName}, ${state.empRole}
+- Manager: ${state.mgrName}
+- Date of live conversation: ${fmt(state.convDate)}
+- Documentation level: ${state.level} (Level ${state.levelCode})
+- Last feedback email: ${state.lastEmailDate ? fmt(state.lastEmailDate) : 'Unknown'}, ${state.lastEmailLevel || 'Unknown level'}
+- Prior documentation dates: ${state.priorDates || 'None provided'}
+
+Please greet me and ask what performance topics I need to document from today's conversation.`;
+
+  state.messages = [];
+  document.getElementById('chat-messages').innerHTML = '';
+  sendToAPI(contextMsg, true);
+}
+
+async function sendToAPI(userContent, isInit) {
+  if (!isInit) {
+    state.messages.push({role:'user', content: userContent});
+    addMsg(userContent, 'user');
+  }
+
+  showTyping();
+
+  const msgs = isInit
+    ? [{role:'user', content: userContent}]
+    : state.messages;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        system: SYSTEM_PROMPT,
+        messages: msgs
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || 'Sorry, I encountered an error. Please try again.';
+    removeTyping();
+    state.messages.push({role:'assistant', content: text});
+    addMsg(text, 'ai');
+    checkForDraft(text);
+  } catch(e) {
+    removeTyping();
+    addMsg('Connection error. Please check your network and try again.', 'ai');
+  }
+}
+
+function addMsg(text, role) {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `msg msg-${role} fade-in`;
+  if (role === 'ai') {
+    div.innerHTML = formatAI(text);
+  } else {
+    div.textContent = text;
+  }
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function formatAI(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^- (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>')
+    .replace(/^(.)/,'<p>$1')
+    .replace(/(.)$/,'$1</p>');
+}
+
+function showTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.id = 'typing-indicator';
+  div.className = 'typing';
+  div.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+function checkForDraft(text) {
+  if (text.includes('SUBJECT:') && text.includes('EMAIL:')) {
+    // Parse out subject
+    const subjMatch = text.match(/SUBJECT:\s*(.+?)(?:\n|EMAIL:)/s);
+    const emailMatch = text.match(/EMAIL:\s*([\s\S]+?)(?:CHECKLIST:|$)/);
+    const checkMatch = text.match(/CHECKLIST:\s*([\s\S]+?)$/);
+
+    state.draftSubject = subjMatch ? subjMatch[1].trim() : '';
+    state.draftBody = emailMatch ? emailMatch[1].trim() : text;
+    state.draftChecklist = [];
+    if (checkMatch) {
+      state.draftChecklist = checkMatch[1].trim().split('\n').filter(l => l.trim().startsWith('-')).map(l => l.replace(/^-\s*/,'').trim());
+    }
+    document.getElementById('draft-ready').style.display = 'block';
+    document.getElementById('chat-messages').scrollTop = 99999;
+  }
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  sendToAPI(text, false);
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function goToReview() {
+  populateReview();
+  goScreen(4);
+}
+
+function populateReview() {
+  const fmt = d => d ? new Date(d + 'T12:00:00').toLocaleDateString('en-US', {month:'long',day:'numeric',year:'numeric'}) : '—';
+  document.getElementById('review-to').textContent = state.empEmail || state.empName;
+  document.getElementById('review-from').textContent = state.mgrEmail || state.mgrName;
+  document.getElementById('review-subject').textContent = state.draftSubject;
+  document.getElementById('email-content').textContent = state.draftBody;
+  document.getElementById('review-level-tag').innerHTML = `<span class="ltag ${state.levelTag}">${state.level}</span>`;
+
+  // Checklist
+  const cl = document.getElementById('checklist-items');
+  if (state.draftChecklist.length) {
+    cl.innerHTML = state.draftChecklist.map(i => `&#10003; ${i}`).join('<br>');
+  } else {
+    cl.innerHTML = '&#10003; Confirm live conversation occurred before sending<br>&#10003; Review email for accuracy<br>&#10003; Apply Gmail label (e.g. PerfDoc-L' + state.levelCode + ') before sending';
+  }
+
+  // HR review for Level 2+
+  const needsHR = state.levelCode !== '1';
+  const hrNotice = document.getElementById('hr-review-notice');
+  if (needsHR) {
+    hrNotice.style.display = 'block';
+    document.getElementById('hr-level-label').textContent = state.levelCode;
+    document.getElementById('hr-btn-wrap').innerHTML = `<button class="btn btn-secondary" onclick="submitForHRReview()">&#128203; Send to HR for review</button>`;
+    document.getElementById('send-btn-wrap').innerHTML = `<button class="btn btn-teal" onclick="openMailto()" id="mailto-btn" disabled style="opacity:.45;cursor:not-allowed" title="Awaiting HR approval">&#9993; Open in Gmail</button>`;
+  } else {
+    hrNotice.style.display = 'none';
+    document.getElementById('hr-btn-wrap').innerHTML = '';
+    document.getElementById('send-btn-wrap').innerHTML = `<button class="btn btn-teal" onclick="openMailto()">&#9993; Open in Gmail</button>`;
+  }
+}
+
+function copyEmail() {
+  const subj = document.getElementById('review-subject').textContent;
+  const body = document.getElementById('email-content').textContent;
+  navigator.clipboard.writeText('Subject: ' + subj + '\n\n' + body).then(() => {
+    const btn = event.currentTarget;
+    btn.textContent = '&#10003; Copied!';
+    setTimeout(() => btn.innerHTML = '&#128203; Copy email', 2000);
+  });
+}
+
+function openMailto() {
+  const subj = encodeURIComponent(document.getElementById('review-subject').textContent);
+  const body = encodeURIComponent(document.getElementById('email-content').textContent);
+  const to = encodeURIComponent(state.empEmail || '');
+  window.open(`mailto:${to}?subject=${subj}&body=${body}`, '_blank');
+}
+
+function submitForHRReview() {
+  state.hrSubmitted = true;
+  document.getElementById('review-dot').className = 'status-dot dot-pending';
+  document.getElementById('review-status-label').textContent = 'Submitted for HR review';
+  document.getElementById('review-status-sub').textContent = 'Waiting for approval';
+  const btn = event.currentTarget;
+  btn.textContent = '&#10003; Submitted';
+  btn.disabled = true;
+  btn.style.opacity = '.6';
+
+  // Simulate HR approval flow note
+  const notice = document.createElement('div');
+  notice.className = 'alert alert-info fade-in';
+  notice.style.marginTop = '12px';
+  notice.innerHTML = `<strong>Draft submitted.</strong> Your PBP has been notified to review this email in the shared Google Doc. You will receive a Slack notification when it has been approved and is ready to send.<br><br><em>Note: In the full deployment, this step automatically creates a Google Doc shared with HR and sends a Slack notification to your PBP.</em>`;
+  document.getElementById('hr-review-notice').appendChild(notice);
+}
+
+// Simulate HR approval (for demo — in production this is triggered via Slack)
+function approveEmail() {
+  state.hrApproved = true;
+  document.getElementById('review-dot').className = 'status-dot dot-approved';
+  document.getElementById('review-status-label').textContent = 'Approved by HR';
+  document.getElementById('review-status-sub').textContent = 'Ready to send';
+  const mailtoBtn = document.getElementById('mailto-btn');
+  if (mailtoBtn) {
+    mailtoBtn.disabled = false;
+    mailtoBtn.style.opacity = '1';
+    mailtoBtn.style.cursor = 'pointer';
+    mailtoBtn.title = '';
+  }
+}
+
+function setSidebarStep(n) {
+  document.querySelectorAll('.step').forEach((s,i) => {
+    s.classList.remove('active','done');
+    if (i + 1 < n) s.classList.add('done');
+    if (i + 1 === n) s.classList.add('active');
+  });
+}
+
+function goScreen(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen' + n).classList.add('active');
+  setSidebarStep(n);
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
